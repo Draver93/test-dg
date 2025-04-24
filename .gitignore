@@ -1,0 +1,30 @@
+# Android Studio
+.idea/
+*.iml
+.gradle/
+local.properties
+
+# Build outputs
+/build/
+/app/build/
+.cxx/
+/.externalNativeBuild/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+
+# NDK and native libs
+*.so
+*.o
+*.a
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Others
+*.log
+*.swp
+*~
