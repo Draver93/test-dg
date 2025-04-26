@@ -60,7 +60,7 @@ float *Utility::buildPerspectiveMatrix(float *outMatrix, float verticalFovDegree
     // set the basic projection matrix
     float scale = 1.0f / (float)tan(verticalFovDegrees * 0.5 * M_PI / 180);
     // Column 1
-    outMatrix[0] = scale;
+    outMatrix[0] = scale / aspect;
     outMatrix[1] = 0.f;
     outMatrix[2] = 0.f;
     outMatrix[3] = 0.f;

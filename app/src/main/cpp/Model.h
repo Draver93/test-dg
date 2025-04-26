@@ -4,6 +4,8 @@
 #include <vector>
 #include "TextureAsset.h"
 #include "Utility.h"
+#include <tinygltf/tiny_gltf.h>
+
 
 typedef uint16_t Index;
 

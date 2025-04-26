@@ -16,6 +16,8 @@ add_library(testcube SHARED
         TextureAsset.cpp
         Utility.cpp)
 
+target_include_directories(testcube PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+
 # Searches for a package provided by the game activity dependency
 find_package(game-activity REQUIRED CONFIG)
 
