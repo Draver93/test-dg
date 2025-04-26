@@ -53,7 +53,7 @@ TextureAsset::loadAsset(AAssetManager *assetManager, const std::string &assetPat
     glTexImage2D(
             GL_TEXTURE_2D, // target
             0, // mip level
-            GL_RGBA, // internal format, often advisable to use BGR
+            GL_RGBA, // internal format, often advisable to get BGR
             width, // width of the texture
             height, // height of the texture
             0, // border (always 0)

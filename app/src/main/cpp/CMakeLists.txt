@@ -10,8 +10,9 @@ project("testcube")
 add_library(testcube SHARED
         main.cpp
         AndroidOut.cpp
-        Renderer.cpp
+        GameContext.cpp
         Shader.cpp
+        Program.cpp
         TextureAsset.cpp
         Utility.cpp)
 

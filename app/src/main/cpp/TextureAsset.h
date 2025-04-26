@@ -11,7 +11,7 @@ class TextureAsset {
 public:
     /*!
      * Loads a texture asset from the assets/ directory
-     * @param assetManager Asset manager to use
+     * @param assetManager Asset manager to get
      * @param assetPath The path to the asset
      * @return a shared pointer to a texture asset, resources will be reclaimed when it's cleaned up
      */
@@ -21,7 +21,7 @@ public:
     ~TextureAsset();
 
     /*!
-     * @return the texture id for use with OpenGL
+     * @return the texture id for get with OpenGL
      */
     constexpr GLuint getTextureID() const { return textureID_; }
 

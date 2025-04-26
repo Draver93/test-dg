@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "GameContext.h"
 
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <GLES3/gl3.h>
@@ -7,7 +7,7 @@
 #include <android/imagedecoder.h>
 
 #include "AndroidOut.h"
-#include "Shader.h"
+#include "Program.h"
 #include "Utility.h"
 #include "TextureAsset.h"
 
@@ -44,10 +44,11 @@ in vec2 inUV;
 out vec2 fragUV;
 
 uniform mat4 uProjection;
+uniform mat4 uView;
 
 void main() {
     fragUV = inUV;
-    gl_Position = uProjection * vec4(inPosition, 1.0);
+    gl_Position = uProjection * uView * vec4(inPosition, 1.0);
 }
 )vertex";
 
@@ -76,15 +77,15 @@ static constexpr float kProjectionHalfHeight = 2.f;
  * The near plane distance for the projection matrix. Since this is an orthographic projection
  * matrix, it's convenient to have negative values for sorting (and avoiding z-fighting at 0).
  */
-static constexpr float kProjectionNearPlane = -1.f;
+static constexpr float kProjectionNearPlane = 0.1f;
 
 /*!
  * The far plane distance for the projection matrix. Since this is an orthographic porjection
  * matrix, it's convenient to have the far plane equidistant from 0 as the near plane.
  */
-static constexpr float kProjectionFarPlane = 1.f;
+static constexpr float kProjectionFarPlane = 100.f;
 
-Renderer::~Renderer() {
+GameContext::~GameContext() {
     if (display_ != EGL_NO_DISPLAY) {
         eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         if (context_ != EGL_NO_CONTEXT) {
@@ -100,7 +101,7 @@ Renderer::~Renderer() {
     }
 }
 
-void Renderer::render() {
+void GameContext::render() {
     // Check to see if the surface has changed size. This is _necessary_ to do every frame when
     // using immersive mode as you'll get no other notification that your renderable area has
     // changed.
@@ -112,33 +113,46 @@ void Renderer::render() {
     if (shaderNeedsNewProjectionMatrix_) {
         // a placeholder projection matrix allocated on the stack. Column-major memory layout
         float projectionMatrix[16] = {0};
+        float lookAtMatrix[16] = {0};
 
-        // build an orthographic projection matrix for 2d rendering
-        Utility::buildOrthographicMatrix(
+        /*Utility::buildOrthographicMatrix(
                 projectionMatrix,
                 kProjectionHalfHeight,
                 float(width_) / height_,
                 kProjectionNearPlane,
-                kProjectionFarPlane);
+                kProjectionFarPlane);*/
 
+        Utility::buildPerspectiveMatrix(
+                projectionMatrix,
+                60.f,
+                float(width_) / height_,
+                0.1f,
+                100.f);
         // send the matrix to the shader
         // Note: the shader must be active for this to work. Since we only have one shader for this
         // demo, we can assume that it's active.
-        shader_->setProjectionMatrix(projectionMatrix);
+        m_program->setUniform("uProjection", projectionMatrix);
+
+        Utility::buildLookAtMatrix(lookAtMatrix,
+                                   {0.f, 0.f, -5.f},
+                                   {0.f, 0.f, 0.f},
+                                   {0.f, 1.f, 0.f} );
+
+        m_program->setUniform("uView", lookAtMatrix);
 
         // make sure the matrix isn't generated every frame
         shaderNeedsNewProjectionMatrix_ = false;
     }
 
     // clear the color buffer
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Render all the models. There's no depth testing in this sample so they're accepted in the
     // order provided. But the sample EGL setup requests a 24 bit depth buffer so you could
     // configure it at the end of initRenderer
     if (!models_.empty()) {
         for (const auto &model: models_) {
-            shader_->drawModel(model);
+            drawModel(model);
         }
     }
 
@@ -147,7 +161,7 @@ void Renderer::render() {
     assert(swapResult == EGL_TRUE);
 }
 
-void Renderer::initRenderer() {
+void GameContext::initRenderer() {
     // Choose your render attributes
     constexpr EGLint attribs[] = {
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
@@ -220,13 +234,21 @@ void Renderer::initRenderer() {
     PRINT_GL_STRING(GL_VERSION);
     PRINT_GL_STRING_AS_LIST(GL_EXTENSIONS);
 
-    shader_ = std::unique_ptr<Shader>(
-            Shader::loadShader(vertex, fragment, "inPosition", "inUV", "uProjection"));
-    assert(shader_);
 
-    // Note: there's only one shader in this demo, so I'll activate it here. For a more complex game
-    // you'll want to track the active shader and activate/deactivate it as necessary
-    shader_->activate();
+    //"inPosition", "inUV", "uProjection"
+    m_program = std::make_unique<Program>();
+    assert(m_program);
+
+    m_program->attachShader(std::make_shared<Shader>(GL_VERTEX_SHADER, vertex));
+    m_program->attachShader(std::make_shared<Shader>(GL_FRAGMENT_SHADER, fragment));
+
+    glLinkProgram(m_program->get());
+
+    //m_program->setUniform();
+
+    glUseProgram(m_program->get());
+
+
 
     // setup any other gl related global states
     glClearColor(CORNFLOWER_BLUE);
@@ -235,11 +257,14 @@ void Renderer::initRenderer() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     // get some demo models into memory
     createModels();
 }
 
-void Renderer::updateRenderArea() {
+void GameContext::updateRenderArea() {
     EGLint width;
     eglQuerySurface(display_, surface_, EGL_WIDTH, &width);
 
@@ -259,7 +284,7 @@ void Renderer::updateRenderArea() {
 /**
  * @brief Create any demo models we want for this demo.
  */
-void Renderer::createModels() {
+void GameContext::createModels() {
     /*
      * This is a square:
      * 0 --- 1
@@ -268,6 +293,7 @@ void Renderer::createModels() {
      * |   \ |
      * 3 --- 2
      */
+
     std::vector<Vertex> vertices = {
             Vertex(Vector3{1, 1, 0}, Vector2{0, 0}), // 0
             Vertex(Vector3{-1, 1, 0}, Vector2{1, 0}), // 1
@@ -277,7 +303,6 @@ void Renderer::createModels() {
     std::vector<Index> indices = {
             0, 1, 2, 0, 2, 3
     };
-
     // loads an image and assigns it to the square.
     //
     // Note: there is no texture management in this sample, so if you reuse an image be careful not
@@ -289,7 +314,41 @@ void Renderer::createModels() {
     models_.emplace_back(vertices, indices, spAndroidRobotTexture);
 }
 
-void Renderer::handleInput() {
+void GameContext::drawModel(const Model &model) {
+    // The position attribute is 3 floats
+    glVertexAttribPointer(
+            m_program->getAttributeLocation("inPosition"), // attrib
+            3, // elements
+            GL_FLOAT, // of type float
+            GL_FALSE, // don't normalize
+            sizeof(Vertex), // stride is Vertex bytes
+            model.getVertexData() // pull from the start of the vertex data
+    );
+    glEnableVertexAttribArray(m_program->getAttributeLocation("inPosition"));
+
+    // The uv attribute is 2 floats
+    glVertexAttribPointer(
+            m_program->getAttributeLocation("inUV"), // attrib
+            2, // elements
+            GL_FLOAT, // of type float
+            GL_FALSE, // don't normalize
+            sizeof(Vertex), // stride is Vertex bytes
+            ((uint8_t *) model.getVertexData()) + sizeof(Vector3) // offset Vector3 from the start
+    );
+    glEnableVertexAttribArray(m_program->getAttributeLocation("inUV"));
+
+    // Setup the texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, model.getTexture().getTextureID());
+
+    // Draw as indexed triangles
+    glDrawElements(GL_TRIANGLES, model.getIndexCount(), GL_UNSIGNED_SHORT, model.getIndexData());
+
+    glDisableVertexAttribArray(m_program->getAttributeLocation("inUV"));
+    glDisableVertexAttribArray(m_program->getAttributeLocation(std::string("inPosition")));
+}
+
+void GameContext::handleInput() {
     // handle all queued inputs
     auto *inputBuffer = android_app_swap_input_buffers(app_);
     if (!inputBuffer) {
@@ -350,7 +409,7 @@ void Renderer::handleInput() {
         }
         aout << std::endl;
     }
-    // clear the motion input count in this buffer for main thread to re-use.
+    // clear the motion input count in this buffer for main thread to re-get.
     android_app_clear_motion_events(inputBuffer);
 
     // handle input key events.

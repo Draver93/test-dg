@@ -5,16 +5,16 @@
 #include <memory>
 
 #include "Model.h"
-#include "Shader.h"
+#include "Program.h"
 
 struct android_app;
 
-class Renderer {
+class GameContext {
 public:
     /*!
-     * @param pApp the android_app this Renderer belongs to, needed to configure GL
+     * @param pApp the android_app this GameContext belongs to, needed to configure GL
      */
-    inline Renderer(android_app *pApp) :
+    inline GameContext(android_app *pApp) :
             app_(pApp),
             display_(EGL_NO_DISPLAY),
             surface_(EGL_NO_SURFACE),
@@ -25,7 +25,7 @@ public:
         initRenderer();
     }
 
-    virtual ~Renderer();
+    virtual ~GameContext();
 
     /*!
      * Handles input from the android_app.
@@ -54,9 +54,11 @@ private:
 
     /*!
      * Creates the models for this sample. You'd likely load a scene configuration from a file or
-     * use some other setup logic in your full game.
+     * get some other setup logic in your full game.
      */
     void createModels();
+
+    void drawModel(const Model &model);
 
     android_app *app_;
     EGLDisplay display_;
@@ -67,7 +69,7 @@ private:
 
     bool shaderNeedsNewProjectionMatrix_;
 
-    std::unique_ptr<Shader> shader_;
+    std::unique_ptr<Program> m_program;
     std::vector<Model> models_;
 };
 
