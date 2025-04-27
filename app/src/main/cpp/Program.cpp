@@ -18,10 +18,6 @@ GLuint Program::get() const {
     return m_instance;
 }
 
-void Program::drawModel(const Model &model) {
-
-}
-
 GLint Program::getUniformLocation(const std::string& name) {
     if(m_uniforms[name] == 0) defineUniform(name.c_str());
     return m_uniforms[name];

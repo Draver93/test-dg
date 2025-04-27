@@ -7,6 +7,9 @@
 #include "Model.h"
 #include "Program.h"
 
+
+#include <tinygltf/tiny_gltf.h>
+
 struct android_app;
 
 class GameContext {
@@ -58,7 +61,7 @@ private:
      */
     void createModels();
 
-    void drawModel(const Model &model);
+    void _drawModel(const Model &model);
 
     android_app *app_;
     EGLDisplay display_;
@@ -71,6 +74,17 @@ private:
 
     std::unique_ptr<Program> m_program;
     std::vector<Model> models_;
+    float m_cam_rot = 0;
+    tinygltf::Model m_model;
+    std::pair<GLuint, std::map<int, GLuint>> m_vaoAndEbos;
+
+    void drawMesh(const std::map<int, GLuint>& vbos, tinygltf::Model &model, tinygltf::Mesh &mesh);
+    void drawModelNodes(const std::pair<GLuint, std::map<int, GLuint>>& vaoAndEbos, tinygltf::Model &model, tinygltf::Node &node);
+    void drawModel(const std::pair<GLuint, std::map<int, GLuint>>& vaoAndEbos, tinygltf::Model &model);
+
+    void bindMesh(std::map<int, GLuint>& vbos, tinygltf::Model &model, tinygltf::Mesh &mesh);
+    void bindModelNodes(std::map<int, GLuint>& vbos, tinygltf::Model &model, tinygltf::Node &node);
+    std::pair<GLuint, std::map<int, GLuint>> bindModel(tinygltf::Model &model);
 };
 
 #endif //ANDROIDGLINVESTIGATIONS_RENDERER_H

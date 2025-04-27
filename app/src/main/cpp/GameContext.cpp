@@ -1,3 +1,9 @@
+
+
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "GameContext.h"
 
 #include <game-activity/native_app_glue/android_native_app_glue.h>
@@ -13,6 +19,7 @@
 
 //! executes glGetString and outputs the result to logcat
 #define PRINT_GL_STRING(s) {aout << #s": "<< glGetString(s) << std::endl;}
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 /*!
  * @brief if glGetString returns a space separated list of elements, prints each one on a new line
@@ -38,8 +45,9 @@ aout << std::endl;\
 
 // Vertex shader, you'd typically load this from assets
 static const char *vertex = R"vertex(#version 300 es
-in vec3 inPosition;
-in vec2 inUV;
+layout(location = 0) in vec3 in_vertex;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_texcoord;
 
 out vec2 fragUV;
 
@@ -47,8 +55,10 @@ uniform mat4 uProjection;
 uniform mat4 uView;
 
 void main() {
-    fragUV = inUV;
-    gl_Position = uProjection * uView * vec4(inPosition, 1.0);
+    fragUV = in_texcoord;
+	gl_Position = uProjection * uView  * vec4(in_vertex, 1);
+
+    //gl_Position = uProjection * uView * vec4(inPosition, 1.0);
 }
 )vertex";
 
@@ -63,7 +73,7 @@ uniform sampler2D uTexture;
 out vec4 outColor;
 
 void main() {
-    outColor = texture(uTexture, fragUV);
+    outColor = vec4(1);//texture(uTexture, fragUV);
 }
 )fragment";
 
@@ -113,7 +123,6 @@ void GameContext::render() {
     if (shaderNeedsNewProjectionMatrix_) {
         // a placeholder projection matrix allocated on the stack. Column-major memory layout
         float projectionMatrix[16] = {0};
-        float lookAtMatrix[16] = {0};
 
         /*Utility::buildOrthographicMatrix(
                 projectionMatrix,
@@ -133,16 +142,22 @@ void GameContext::render() {
         // demo, we can assume that it's active.
         m_program->setUniform("uProjection", projectionMatrix);
 
-        Utility::buildLookAtMatrix(lookAtMatrix,
-                                   {0.f, 0.f, -5.f},
-                                   {0.f, 0.f, 0.f},
-                                   {0.f, 1.f, 0.f} );
 
-        m_program->setUniform("uView", lookAtMatrix);
 
         // make sure the matrix isn't generated every frame
         shaderNeedsNewProjectionMatrix_ = false;
     }
+
+    float lookAtMatrix[16] = {0};
+    Utility::buildLookAtMatrix(lookAtMatrix,
+                               {0.f, m_cam_rot, -5.f},
+                               {0.f, 0.f, 0.f},
+                               {0.f, 1.f, 0.f} );
+
+    m_cam_rot += 1.0f;
+    if(m_cam_rot > 20) m_cam_rot = -20;
+
+    m_program->setUniform("uView", lookAtMatrix);
 
     // clear the color buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -150,11 +165,13 @@ void GameContext::render() {
     // Render all the models. There's no depth testing in this sample so they're accepted in the
     // order provided. But the sample EGL setup requests a 24 bit depth buffer so you could
     // configure it at the end of initRenderer
-    if (!models_.empty()) {
+
+    drawModel(m_vaoAndEbos, m_model);
+    /*if (!models_.empty()) {
         for (const auto &model: models_) {
-            drawModel(model);
+            _drawModel(model);
         }
-    }
+    }*/
 
     // Present the rendered image. This is an implicit glFlush.
     auto swapResult = eglSwapBuffers(display_, surface_);
@@ -285,6 +302,100 @@ void GameContext::updateRenderArea() {
  * @brief Create any demo models we want for this demo.
  */
 void GameContext::createModels() {
+
+    {
+        tinygltf::TinyGLTF loader;
+
+        // FileExistsCallback
+        auto file_exists_fn = [](const std::string& path, void* user_data) -> bool {
+            AAssetManager* assetManager = reinterpret_cast<AAssetManager*>(user_data);
+            AAsset* asset = AAssetManager_open(assetManager, path.c_str(), AASSET_MODE_BUFFER);
+            if (asset) {
+                AAsset_close(asset);
+                return true;
+            }
+            return false;
+        };
+
+        // ExpandFilePathCallback (no-op for Android, could implement for path resolution)
+        auto expand_file_path_fn = [](const std::string& path, void* user_data) -> std::string {
+            return path; // No expansion needed on Android
+        };
+
+        // ReadWholeFileCallback
+        auto read_whole_file_fn = [](std::vector<unsigned char>* out, std::string* err, const std::string& path, void* user_data) -> bool {
+            AAssetManager* assetManager = reinterpret_cast<AAssetManager*>(user_data);
+            AAsset* asset = AAssetManager_open(assetManager, path.c_str(), AASSET_MODE_BUFFER);
+
+            if (!asset) {
+                if (err) *err = "Failed to open asset: " + path;
+                return false;
+            }
+
+            off_t length = AAsset_getLength(asset);
+            out->resize(length); // Resize the vector to fit the data
+            AAsset_read(asset, out->data(), length); // Read into the buffer
+            AAsset_close(asset); // Close the asset
+
+            return true; // Successfully read the file
+        };
+
+        // WriteWholeFileCallback (updated for correct signature)
+        auto write_whole_file_fn = [](std::string* err, const std::string& filepath, const std::vector<unsigned char>& contents, void* user_data) -> bool {
+            // This example does not implement writing, so we return false
+            if (err) *err = "Write operation is not implemented.";
+            return false;  // No-op: we don't handle writing in this case
+        };
+
+        // GetFileSizeInBytesCallback (updated for correct signature)
+        auto get_file_size_fn = [](size_t* filesize_out, std::string* err, const std::string& filepath, void* user_data) -> bool {
+            AAssetManager* assetManager = reinterpret_cast<AAssetManager*>(user_data);
+            AAsset* asset = AAssetManager_open(assetManager, filepath.c_str(), AASSET_MODE_BUFFER);
+
+            if (!asset) {
+                if (err) *err = "Failed to open asset: " + filepath;
+                return false;
+            }
+
+            size_t size = AAsset_getLength(asset);
+            *filesize_out = size; // Set the file size
+            AAsset_close(asset); // Close the asset
+
+            return true; // Successfully retrieved the file size
+        };
+
+        // Now, fill the FsCallbacks struct
+        tinygltf::FsCallbacks fs_callbacks = {
+                file_exists_fn,        // FileExists function
+                expand_file_path_fn,   // ExpandFilePath function
+                read_whole_file_fn,    // ReadWholeFile function
+                write_whole_file_fn,   // WriteWholeFile function (optional, no-op in this case)
+                get_file_size_fn,      // GetFileSizeInBytes function
+                app_->activity->assetManager // Set user_data as AAssetManager
+        };
+        loader.SetFsCallbacks(fs_callbacks);
+
+        std::string filename = "Cube/Cube.gltf";
+        std::string err;
+        std::string warn;
+        AAsset* asset = AAssetManager_open(app_->activity->assetManager, filename.c_str(), AASSET_MODE_BUFFER);
+        if (!asset)
+            return;
+
+        off_t length = AAsset_getLength(asset);
+        const void* buffer = AAsset_getBuffer(asset);
+        std::string base_dir;
+        bool res = loader.LoadASCIIFromFile(&m_model, &err, &warn, filename.c_str());
+
+        if (!warn.empty()) aout << "WARN: " << warn << std::endl;
+        if (!err.empty()) aout << "ERR: " << err << std::endl;
+
+        if (!res) aout << "Failed to load glTF: " << filename << std::endl;
+        else aout << "Loaded glTF: " << filename << std::endl;
+
+
+    }
+    m_vaoAndEbos = bindModel(m_model);
     /*
      * This is a square:
      * 0 --- 1
@@ -314,7 +425,11 @@ void GameContext::createModels() {
     models_.emplace_back(vertices, indices, spAndroidRobotTexture);
 }
 
-void GameContext::drawModel(const Model &model) {
+
+void GameContext::_drawModel(const Model &model) {
+
+    //_drawModel();
+
     // The position attribute is 3 floats
     glVertexAttribPointer(
             m_program->getAttributeLocation("inPosition"), // attrib
@@ -347,6 +462,197 @@ void GameContext::drawModel(const Model &model) {
     glDisableVertexAttribArray(m_program->getAttributeLocation("inUV"));
     glDisableVertexAttribArray(m_program->getAttributeLocation(std::string("inPosition")));
 }
+
+
+
+void GameContext::drawMesh(const std::map<int, GLuint>& vbos,
+              tinygltf::Model &model, tinygltf::Mesh &mesh) {
+    for (size_t i = 0; i < mesh.primitives.size(); ++i) {
+        tinygltf::Primitive primitive = mesh.primitives[i];
+        tinygltf::Accessor indexAccessor = model.accessors[primitive.indices];
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos.at(indexAccessor.bufferView));
+
+        glDrawElements(primitive.mode, indexAccessor.count,
+                       indexAccessor.componentType,
+                       BUFFER_OFFSET(indexAccessor.byteOffset));
+    }
+}
+
+// recursively draw node and children nodes of model
+void GameContext::drawModelNodes(const std::pair<GLuint, std::map<int, GLuint>>& vaoAndEbos,
+                    tinygltf::Model &model, tinygltf::Node &node) {
+    if ((node.mesh >= 0) && (node.mesh < model.meshes.size())) {
+        drawMesh(vaoAndEbos.second, model, model.meshes[node.mesh]);
+    }
+    for (size_t i = 0; i < node.children.size(); i++) {
+        drawModelNodes(vaoAndEbos, model, model.nodes[node.children[i]]);
+    }
+}
+
+void GameContext::drawModel(const std::pair<GLuint, std::map<int, GLuint>>& vaoAndEbos,
+               tinygltf::Model &model) {
+    glBindVertexArray(vaoAndEbos.first);
+
+    const tinygltf::Scene &scene = model.scenes[model.defaultScene];
+    for (size_t i = 0; i < scene.nodes.size(); ++i) {
+        drawModelNodes(vaoAndEbos, model, model.nodes[scene.nodes[i]]);
+    }
+
+    glBindVertexArray(0);
+}
+
+
+
+void GameContext::bindMesh(std::map<int, GLuint>& vbos,
+              tinygltf::Model &model, tinygltf::Mesh &mesh) {
+    for (size_t i = 0; i < model.bufferViews.size(); ++i) {
+        const tinygltf::BufferView &bufferView = model.bufferViews[i];
+        if (bufferView.target == 0) {  // TODO impl drawarrays
+            aout << "WARN: bufferView.target is zero" << std::endl;
+            continue;  // Unsupported bufferView.
+            /*
+              From spec2.0 readme:
+              https://github.com/KhronosGroup/glTF/tree/master/specification/2.0
+                       ... drawArrays function should be used with a count equal to
+              the count            property of any of the accessors referenced by the
+              attributes            property            (they are all equal for a given
+              primitive).
+            */
+        }
+
+        const tinygltf::Buffer &buffer = model.buffers[bufferView.buffer];
+        aout << "bufferview.target " << bufferView.target << std::endl;
+
+        GLuint vbo;
+        glGenBuffers(1, &vbo);
+        vbos[i] = vbo;
+        glBindBuffer(bufferView.target, vbo);
+
+        aout << "buffer.data.size = " << buffer.data.size()
+                  << ", bufferview.byteOffset = " << bufferView.byteOffset
+                  << std::endl;
+
+        glBufferData(bufferView.target, bufferView.byteLength,
+                     &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+    }
+
+    for (size_t i = 0; i < mesh.primitives.size(); ++i) {
+        tinygltf::Primitive primitive = mesh.primitives[i];
+        tinygltf::Accessor indexAccessor = model.accessors[primitive.indices];
+
+        for (auto &attrib : primitive.attributes) {
+            tinygltf::Accessor accessor = model.accessors[attrib.second];
+            int byteStride =
+                    accessor.ByteStride(model.bufferViews[accessor.bufferView]);
+            glBindBuffer(GL_ARRAY_BUFFER, vbos[accessor.bufferView]);
+
+            int size = 1;
+            if (accessor.type != TINYGLTF_TYPE_SCALAR) {
+                size = accessor.type;
+            }
+
+            int vaa = -1;
+            if (attrib.first.compare("POSITION") == 0) vaa = 0;
+            if (attrib.first.compare("NORMAL") == 0) vaa = 1;
+            if (attrib.first.compare("TEXCOORD_0") == 0) vaa = 2;
+            if (vaa > -1) {
+                glEnableVertexAttribArray(vaa);
+                glVertexAttribPointer(vaa, size, accessor.componentType,
+                                      accessor.normalized ? GL_TRUE : GL_FALSE,
+                                      byteStride, BUFFER_OFFSET(accessor.byteOffset));
+            } else
+                aout << "vaa missing: " << attrib.first << std::endl;
+        }
+        /*
+        if (model.textures.size() > 0) {
+            // fixme: Use material's baseColor
+            tinygltf::Texture &tex = model.textures[0];
+
+            if (tex.source > -1) {
+
+                GLuint texid;
+                glGenTextures(1, &texid);
+
+                tinygltf::Image &image = model.images[tex.source];
+
+                glBindTexture(GL_TEXTURE_2D, texid);
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+                GLenum format = GL_RGBA;
+
+                if (image.component == 1) {
+                    format = GL_RED;
+                } else if (image.component == 2) {
+                    format = GL_RG;
+                } else if (image.component == 3) {
+                    format = GL_RGB;
+                } else {
+                    // ???
+                }
+
+                GLenum type = GL_UNSIGNED_BYTE;
+                if (image.bits == 8) {
+                    // ok
+                } else if (image.bits == 16) {
+                    type = GL_UNSIGNED_SHORT;
+                } else {
+                    // ???
+                }
+
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0,
+                             format, type, &image.image.at(0));
+            }
+        }
+        */
+    }
+}
+
+// bind models
+void GameContext::bindModelNodes(std::map<int, GLuint>& vbos, tinygltf::Model &model,
+                    tinygltf::Node &node) {
+    if ((node.mesh >= 0) && (node.mesh < model.meshes.size())) {
+        bindMesh(vbos, model, model.meshes[node.mesh]);
+    }
+
+    for (size_t i = 0; i < node.children.size(); i++) {
+        assert((node.children[i] >= 0) && (node.children[i] < model.nodes.size()));
+        bindModelNodes(vbos, model, model.nodes[node.children[i]]);
+    }
+}
+
+std::pair<GLuint, std::map<int, GLuint>> GameContext::bindModel(tinygltf::Model &model) {
+    std::map<int, GLuint> vbos;
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    const tinygltf::Scene &scene = model.scenes[model.defaultScene];
+    for (size_t i = 0; i < scene.nodes.size(); ++i) {
+        assert((scene.nodes[i] >= 0) && (scene.nodes[i] < model.nodes.size()));
+        bindModelNodes(vbos, model, model.nodes[scene.nodes[i]]);
+    }
+
+    glBindVertexArray(0);
+    // cleanup vbos but do not delete index buffers yet
+    for (auto it = vbos.cbegin(); it != vbos.cend();) {
+        tinygltf::BufferView bufferView = model.bufferViews[it->first];
+        if (bufferView.target != GL_ELEMENT_ARRAY_BUFFER) {
+            glDeleteBuffers(1, &vbos[it->first]);
+            vbos.erase(it++);
+        }
+        else {
+            ++it;
+        }
+    }
+
+    return {vao, vbos};
+}
+
 
 void GameContext::handleInput() {
     // handle all queued inputs
