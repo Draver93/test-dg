@@ -6,13 +6,19 @@
 
 #include "Model.h"
 #include "Program.h"
-
+#include "core/GameScene.h"
+#include "core/GameDirector.h"
+#include "core/components/Renderer.h"
+#include "core/components/Transform.h"
 
 #include <tinygltf/tiny_gltf.h>
 
 struct android_app;
 
 class GameContext {
+private:
+    std::shared_ptr<GameScene> m_activeScene;
+
 public:
     /*!
      * @param pApp the android_app this GameContext belongs to, needed to configure GL
@@ -26,6 +32,9 @@ public:
             height_(0),
             shaderNeedsNewProjectionMatrix_(true) {
         initRenderer();
+
+        m_activeScene = std::make_shared<GameScene>();
+        m_activeScene->AddGameObject(std::make_shared<GameObject>());
     }
 
     virtual ~GameContext();
@@ -37,10 +46,8 @@ public:
      */
     void handleInput();
 
-    /*!
-     * Renders all the models in the renderer
-     */
-    void render();
+
+    void update();
 
 private:
     /*!

@@ -111,7 +111,7 @@ GameContext::~GameContext() {
     }
 }
 
-void GameContext::render() {
+void GameContext::update() {
     // Check to see if the surface has changed size. This is _necessary_ to do every frame when
     // using immersive mode as you'll get no other notification that your renderable area has
     // changed.

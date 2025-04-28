@@ -108,10 +108,12 @@ void android_main(struct android_app *pApp) {
             auto *pCtx = reinterpret_cast<GameContext *>(pApp->userData);
 
             // Process game input
-            pCtx->handleInput();
+            //pCtx->handleInput();
 
             // Render a frame
-            pCtx->render();
+            //pCtx->render();
+
+            pCtx->update();
         }
     } while (!pApp->destroyRequested);
 }

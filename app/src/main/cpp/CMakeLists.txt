@@ -5,16 +5,16 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("testcube")
 
+
+file(GLOB_RECURSE SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+)
 # Creates your game shared library. The name must be the same as the
 # one used for loading in your Kotlin/Java or AndroidManifest.txt files.
-add_library(testcube SHARED
-        main.cpp
-        AndroidOut.cpp
-        GameContext.cpp
-        Shader.cpp
-        Program.cpp
-        TextureAsset.cpp
-        Utility.cpp)
+message(STATUS "Sources: ${SOURCES}")
+
+add_library(testcube SHARED ${SOURCES})
+
 
 target_include_directories(testcube PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/third_party
                                             ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json
