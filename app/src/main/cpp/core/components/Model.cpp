@@ -20,15 +20,7 @@ namespace DGEngine {
     }
 
     void Model::Update(float deltaTime) {
-        Transform* transform = m_Owner->GetComponent<Transform>();
-        if(transform) {
-            glm::vec3 rot = transform->GetRotation();
-            rot[0] +=  0.1f * deltaTime;
-            rot[1] -=  0.3f * deltaTime;
-            rot[2] +=  0.8f * deltaTime;
 
-            transform->SetRotationEuler(rot);
-        }
     };
 
     glm::mat4 Model::GetTransformMatrix() {

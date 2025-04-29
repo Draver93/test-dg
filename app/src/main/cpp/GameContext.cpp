@@ -9,6 +9,7 @@
 #include "AndroidOut.h"
 #include "Utility.h"
 #include "TextureAsset.h"
+#include "scripts/RotationScript.h"
 
 //! executes glGetString and outputs the result to logcat
 #define PRINT_GL_STRING(s) {aout << #s": "<< glGetString(s) << std::endl;}
@@ -166,8 +167,14 @@ void GameContext::initRenderer() {
 
 void GameContext::createModels() {
     if(m_ActiveScene) {
-        m_ActiveScene->AddGameObject(DGEngine::GameDirector::CreateModel("Cube/Cube.gltf"));
-        m_ActiveScene->AddGameObject(DGEngine::GameDirector::CreateCamera(m_Display, m_Surface));
+        std::shared_ptr<DGEngine::GameObject> model = DGEngine::GameDirector::CreateModel("Cube/Cube.gltf");
+        model->AddComponent<RotationScript>();
+        m_ActiveScene->AddGameObject(model);
+
+        std::shared_ptr<DGEngine::GameObject> camera = DGEngine::GameDirector::CreateCamera( m_Display, m_Surface );
+        DGEngine::Transform* transform = camera->GetComponent<DGEngine::Transform>();
+        transform->position[2] = -10;
+        m_ActiveScene->AddGameObject(camera);
     }
 }
 
