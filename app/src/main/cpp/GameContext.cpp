@@ -36,42 +36,35 @@ aout << std::endl;\
 #define CORNFLOWER_BLUE 100 / 255.f, 149 / 255.f, 237 / 255.f, 1
 
 GameContext::GameContext(android_app *pApp) :
-    app_(pApp),
-    display_(EGL_NO_DISPLAY),
-    surface_(EGL_NO_SURFACE),
-    context_(EGL_NO_CONTEXT),
-    width_(0),
-    height_(0),
-    shaderNeedsNewProjectionMatrix_(true) {
+        m_App(pApp),
+        m_Display(EGL_NO_DISPLAY),
+        m_Surface(EGL_NO_SURFACE),
+        m_Context(EGL_NO_CONTEXT),
+        m_PreviousTime(Clock::now()) {
         DGEngine::GLTFLoader::Init(pApp->activity->assetManager);
-    m_ActiveScene = std::make_shared<DGEngine::GameScene>();
-        m_PreviousTime = Clock::now();
+
+        m_ActiveScene = std::make_shared<DGEngine::GameScene>();
         initRenderer();
     }
 
 
 GameContext::~GameContext() {
-    if (display_ != EGL_NO_DISPLAY) {
-        eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (context_ != EGL_NO_CONTEXT) {
-            eglDestroyContext(display_, context_);
-            context_ = EGL_NO_CONTEXT;
+    if (m_Display != EGL_NO_DISPLAY) {
+        eglMakeCurrent(m_Display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (m_Context != EGL_NO_CONTEXT) {
+            eglDestroyContext(m_Display, m_Context);
+            m_Context = EGL_NO_CONTEXT;
         }
-        if (surface_ != EGL_NO_SURFACE) {
-            eglDestroySurface(display_, surface_);
-            surface_ = EGL_NO_SURFACE;
+        if (m_Surface != EGL_NO_SURFACE) {
+            eglDestroySurface(m_Display, m_Surface);
+            m_Surface = EGL_NO_SURFACE;
         }
-        eglTerminate(display_);
-        display_ = EGL_NO_DISPLAY;
+        eglTerminate(m_Display);
+        m_Display = EGL_NO_DISPLAY;
     }
 }
 
 void GameContext::update() {
-    // Check to see if the surface has changed size. This is _necessary_ to do every frame when
-    // using immersive mode as you'll Get no other notification that your renderable area has
-    // changed.
-    updateRenderArea();
-
     // clear the color buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -80,17 +73,11 @@ void GameContext::update() {
     m_PreviousTime = currentTime;
 
     if(m_ActiveScene) {
-        if(shaderNeedsNewProjectionMatrix_)
-        {
-            m_ActiveScene->SetDisplaySize(width_, height_);
-            shaderNeedsNewProjectionMatrix_ = false;
-        }
-
         m_ActiveScene->Update(deltaTime.count());
     }
 
     // Present the rendered image. This is an implicit glFlush.
-    auto swapResult = eglSwapBuffers(display_, surface_);
+    auto swapResult = eglSwapBuffers(m_Display, m_Surface);
     assert(swapResult == EGL_TRUE);
 }
 
@@ -144,7 +131,7 @@ void GameContext::initRenderer() {
     // create the proper window surface
     EGLint format;
     eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-    EGLSurface surface = eglCreateWindowSurface(display, config, app_->window, nullptr);
+    EGLSurface surface = eglCreateWindowSurface(display, config, m_App->window, nullptr);
 
     // Create a GLES 3 context
     EGLint contextAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
@@ -154,13 +141,9 @@ void GameContext::initRenderer() {
     auto madeCurrent = eglMakeCurrent(display, surface, surface, context);
     assert(madeCurrent);
 
-    display_ = display;
-    surface_ = surface;
-    context_ = context;
-
-    // make width and height invalid so it gets updated the first frame in @a updateRenderArea()
-    width_ = -1;
-    height_ = -1;
+    m_Display = display;
+    m_Surface = surface;
+    m_Context = context;
 
     PRINT_GL_STRING(GL_VENDOR);
     PRINT_GL_STRING(GL_RENDERER);
@@ -181,31 +164,16 @@ void GameContext::initRenderer() {
     createModels();
 }
 
-void GameContext::updateRenderArea() {
-    EGLint width;
-    eglQuerySurface(display_, surface_, EGL_WIDTH, &width);
-
-    EGLint height;
-    eglQuerySurface(display_, surface_, EGL_HEIGHT, &height);
-
-    if (width != width_ || height != height_) {
-        width_ = width;
-        height_ = height;
-        glViewport(0, 0, width, height);
-
-        // make sure that we lazily recreate the projection matrix before we render
-        shaderNeedsNewProjectionMatrix_ = true;
-    }
-}
-
 void GameContext::createModels() {
-    //m_TestGO = DGEngine::GameDirector::CreateModel("Cube/Cube.gltf");
-    if(m_ActiveScene) m_ActiveScene->AddGameObject(DGEngine::GameDirector::CreateModel("Cube/Cube.gltf"));
+    if(m_ActiveScene) {
+        m_ActiveScene->AddGameObject(DGEngine::GameDirector::CreateModel("Cube/Cube.gltf"));
+        m_ActiveScene->AddGameObject(DGEngine::GameDirector::CreateCamera(m_Display, m_Surface));
+    }
 }
 
 void GameContext::handleInput() {
     // handle all queued inputs
-    auto *inputBuffer = android_app_swap_input_buffers(app_);
+    auto *inputBuffer = android_app_swap_input_buffers(m_App);
     if (!inputBuffer) {
         // no inputs yet.
         return;

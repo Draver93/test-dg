@@ -16,14 +16,9 @@ namespace DGEngine {
         void AddGameObject(std::shared_ptr<GameObject> gameObject);
         void RemoveGameObject(GameObject* gameObject);
         void Update(float deltaTime);
-        void SetDisplaySize(EGLint width, EGLint height);
     private:
         std::set<std::shared_ptr<GameObject>> m_Objects;
 
-        float m_ProjectionMatrix[16];
-        EGLint m_Width = 800;
-        EGLint m_Height = 600;
-        float m_cam_rot = 0;
     };
 }
 

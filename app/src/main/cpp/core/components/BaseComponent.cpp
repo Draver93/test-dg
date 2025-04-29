@@ -8,8 +8,8 @@
 namespace DGEngine {
     template<typename T>
     T* BaseComponent::GetComponent() {
-        if (owner)
-            return owner->GetComponent<T>();
+        if (m_Owner)
+            return m_Owner->GetComponent<T>();
         return nullptr;
     }
 }

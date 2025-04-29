@@ -6,6 +6,7 @@
 #define TESTDG_MESH_H
 
 #include <GLES3/gl3.h>
+#include <glm/glm.hpp>
 
 #include "Resource.h"
 
@@ -38,7 +39,6 @@ namespace DGEngine {
         std::vector<Attribute> m_Attributes;
         GLuint m_VertexBufferObject = 0;
         GLuint m_IndexBufferObject = 0;
-        GLuint m_VertexArrayObject = 0;
 
         GLenum m_DrawMode = GL_TRIANGLES;
         GLenum m_IndexType = 0;
@@ -49,8 +49,8 @@ namespace DGEngine {
         std::shared_ptr<Material> m_Material;
 
     public:
-        GLuint GetVertexArrayObject() { return m_VertexArrayObject; }
-        void SetVertexArrayObject(GLuint vertexArrayObject) { m_VertexArrayObject = vertexArrayObject; }
+        GLuint GetVertexArrayObject();
+        glm::mat4 GetTransformMatrix();
 
         void SetMaterial(std::shared_ptr<Material> material) { m_Material = material; }
         std::shared_ptr<Material> GetMaterial() { return m_Material; };
@@ -68,9 +68,10 @@ namespace DGEngine {
         void SetIndexCount(GLsizei indexCount) { m_IndexCount = indexCount; };
         void SetIndexOffset(size_t indexOffset) { m_IndexOffset = indexOffset; };
 
+        void SetParent(Model* parent) { m_Parent = parent; };
     private:
         bool uploaded_ = false;
-
+        Model* m_Parent;
     public:
         bool IsUploaded() const { return uploaded_; }
         void MarkUploaded() { uploaded_ = true; }

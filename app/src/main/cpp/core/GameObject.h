@@ -20,11 +20,12 @@ namespace DGEngine {
         T* AddComponent(Args&&... args) {
             auto comp = std::make_unique<T>(std::forward<Args>(args)...);
             T* rawPtr = comp.get();
-            rawPtr->setOwner(this);
+            rawPtr->SetOwner(this);
             m_Components[typeid(T)] = std::move(comp);
             return rawPtr;
         }
 
+        // example: m_Owner->GetComponent<Transform>();
         template<typename T>
         T* GetComponent() {
             auto it = m_Components.find(typeid(T));

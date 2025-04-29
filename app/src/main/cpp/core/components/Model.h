@@ -21,6 +21,7 @@ namespace DGEngine {
         const std::vector<std::shared_ptr<Mesh>>& GetMeshes() const { return m_Meshes; }
 
         GLuint GetVertexArrayObject() { return m_VertexArrayObject; }
+        glm::mat4 GetTransformMatrix();
 
     private:
         std::vector<std::shared_ptr<Mesh>> m_Meshes;

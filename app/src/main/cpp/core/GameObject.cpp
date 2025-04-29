@@ -19,7 +19,7 @@ namespace DGEngine {
 
     void GameObject::Update(float deltaTime) {
         for(auto &component : m_Components)
-            component.second->Update(deltaTime);
+            if(component.second->IsActive())component.second->Update(deltaTime);
     }
 
 }

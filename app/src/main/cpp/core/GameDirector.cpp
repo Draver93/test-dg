@@ -4,6 +4,9 @@
 
 #include "GameDirector.h"
 #include "components/Model.h"
+#include "components/Camera.h"
+#include "components/Transform.h"
+
 #include "utilities/GLTFLoader.h"
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -124,7 +127,7 @@ namespace DGEngine {
 
     std::shared_ptr<GameObject> GameDirector::CreateModel(const char* filename) {
         auto go = std::make_shared<GameObject>();
-
+        go->AddComponent<Transform>();
         auto model = go->AddComponent<Model>();
 
         auto gltfModel = GLTFLoader::Load(filename);
@@ -142,6 +145,16 @@ namespace DGEngine {
 
         return go;
     }
+
+    //////////////
+
+    std::shared_ptr<GameObject> GameDirector::CreateCamera(EGLDisplay m_Display, EGLSurface m_Surface) {
+        auto go = std::make_shared<GameObject>();
+        go->AddComponent<Camera>(m_Display, m_Surface);
+        go->AddComponent<Transform>();
+        return go;
+    }
+
 }
 
 

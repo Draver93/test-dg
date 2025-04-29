@@ -5,5 +5,6 @@
 #include "Light.h"
 
 namespace DGEngine {
-
+    void Light::Update(float deltaTime) {
+    };
 }

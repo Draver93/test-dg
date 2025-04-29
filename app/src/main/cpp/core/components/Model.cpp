@@ -3,7 +3,9 @@
 //
 
 #include "Model.h"
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
+#include "Transform.h"
+#include "../GameObject.h"
 
 namespace DGEngine {
     Model::Model() {
@@ -13,12 +15,30 @@ namespace DGEngine {
     void Model::SetMeshes(const std::vector<std::shared_ptr<Mesh>> &meshes) {
         m_Meshes = meshes;
         for(auto &mesh : m_Meshes) {
-            mesh->SetVertexArrayObject(m_VertexArrayObject);
+            mesh->SetParent(this);
         }
     }
 
     void Model::Update(float deltaTime) {
+        Transform* transform = m_Owner->GetComponent<Transform>();
+        if(transform) {
+            glm::vec3 rot = transform->GetRotation();
+            rot[0] +=  0.1f * deltaTime;
+            rot[1] -=  0.3f * deltaTime;
+            rot[2] +=  0.8f * deltaTime;
+
+            transform->SetRotationEuler(rot);
+        }
     };
+
+    glm::mat4 Model::GetTransformMatrix() {
+        Transform* transform = m_Owner->GetComponent<Transform>();
+        if(transform) {
+            return transform->GetMatrix();
+        }
+        return glm::mat4();
+    }
+
 }
 
 

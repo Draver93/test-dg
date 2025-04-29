@@ -6,7 +6,6 @@
 
 #include "core/GameScene.h"
 #include "core/GameDirector.h"
-#include "core/components/Renderer.h"
 #include "core/components/Transform.h"
 #include "core/utilities/GLTFLoader.h"
 
@@ -42,25 +41,15 @@ private:
     void initRenderer();
 
     /*!
-     * @brief we have to check every frame to see if the framebuffer has changed in size. If it has,
-     * update the viewport accordingly
-     */
-    void updateRenderArea();
-
-    /*!
      * Creates the models for this sample. You'd likely load a scene configuration from a file or
      * get some other setup logic in your full game.
      */
     void createModels();
 
-    android_app *app_;
-    EGLDisplay display_;
-    EGLSurface surface_;
-    EGLContext context_;
-    EGLint width_;
-    EGLint height_;
-
-    bool shaderNeedsNewProjectionMatrix_;
+    android_app *m_App;
+    EGLDisplay m_Display;
+    EGLSurface m_Surface;
+    EGLContext m_Context;
 
     TimePoint m_PreviousTime;
 };

@@ -5,9 +5,12 @@
 #ifndef TESTDG_LIGHT_H
 #define TESTDG_LIGHT_H
 
-namespace DGEngine {
-    class Light {
+#include "BaseComponent.h"
 
+namespace DGEngine {
+    class Light : public BaseComponent {
+    public:
+        void Update(float deltaTime) override;
     };
 }
 

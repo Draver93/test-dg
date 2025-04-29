@@ -13,13 +13,12 @@ layout(location = 2) in vec2 in_texcoord;
 out vec2 fragUV;
 
 uniform mat4 uProjection;
+uniform mat4 uModelMatrix;
 uniform mat4 uView;
 
 void main() {
     fragUV = in_texcoord;
-	gl_Position = uProjection * uView  * vec4(in_vertex, 1);
-
-    //gl_Position = uProjection * uView * vec4(inPosition, 1.0);
+	gl_Position = uProjection * uView * uModelMatrix * vec4(in_vertex, 1);
 }
 )vertex";
 

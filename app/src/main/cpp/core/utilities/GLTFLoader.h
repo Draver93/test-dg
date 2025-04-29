@@ -5,7 +5,7 @@
 #ifndef TESTDG_GLTFLOADER_H
 #define TESTDG_GLTFLOADER_H
 
-#include <tinygltf/tiny_gltf.h>
+#include <tiny_gltf.h>
 #include <android/asset_manager.h>
 
 namespace DGEngine {

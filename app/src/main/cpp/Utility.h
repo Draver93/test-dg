@@ -2,6 +2,7 @@
 #define ANDROIDGLINVESTIGATIONS_UTILITY_H
 
 #include <cassert>
+#include <glm/glm.hpp>
 
 union Vector3 {
     struct {

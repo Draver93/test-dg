@@ -6,6 +6,26 @@ cmake_minimum_required(VERSION 3.22.1)
 project("testcube")
 
 
+# FetchContent is the preferred way to add external dependencies
+include(FetchContent)
+
+# Clone GLM from GitHub
+FetchContent_Declare(
+        glm
+        GIT_REPOSITORY https://github.com/g-truc/glm.git
+        GIT_TAG        0.9.9.8  # or latest stable tag
+)
+FetchContent_MakeAvailable(glm)
+
+# tinygltf repo
+FetchContent_Declare(
+        tinygltf
+        GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
+        GIT_TAG        v2.8.21  # Use latest stable tag or omit for latest HEAD
+)
+FetchContent_MakeAvailable(tinygltf)
+
+
 file(GLOB_RECURSE SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
@@ -15,10 +35,7 @@ message(STATUS "Sources: ${SOURCES}")
 
 add_library(testcube SHARED ${SOURCES})
 
-
-target_include_directories(testcube PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-                                            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json
-                                            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb)
+target_include_directories(testcube PUBLIC  ${tinygltf_SOURCE_DIR})
 
 # Searches for a package provided by the game activity dependency
 find_package(game-activity REQUIRED CONFIG)
@@ -34,4 +51,5 @@ target_link_libraries(testcube
         GLESv3
         jnigraphics
         android
-        log)
+        log
+        glm)
