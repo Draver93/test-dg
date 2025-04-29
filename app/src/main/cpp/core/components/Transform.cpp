@@ -4,6 +4,9 @@
 
 #include "Transform.h"
 
-void Transform::Update(float deltaTime) {
+namespace DGEngine {
+    void Transform::Update(float deltaTime) {
 
-};
+    };
+}
+

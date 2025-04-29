@@ -3,3 +3,7 @@
 //
 
 #include "Texture.h"
+
+namespace DGEngine {
+
+}

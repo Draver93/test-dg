@@ -7,21 +7,23 @@
 
 #include "../resources/ResourceDirector.h"
 
-class GameObject;
+namespace DGEngine {
+    class GameObject;
 
-class BaseComponent {
-protected:
-    GameObject* owner = nullptr;
-public:
-    virtual ~BaseComponent() = default;
+    class BaseComponent {
+    protected:
+        GameObject *owner = nullptr;
+    public:
+        virtual ~BaseComponent() = default;
 
-    void setOwner(GameObject* o) { owner = o; }
+        void setOwner(GameObject *o) { owner = o; }
 
-    template<typename T>
-    T* GetComponent();
+        template<typename T>
+        T *GetComponent();
 
-    virtual void Update(float deltaTime) = 0;
-};
+        virtual void Update(float deltaTime) = 0;
+    };
 
+}
 
 #endif //TESTDG_BASECOMPONENT_H

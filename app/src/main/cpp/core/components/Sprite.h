@@ -7,9 +7,13 @@
 
 #include "BaseComponent.h"
 
-class Sprite : public BaseComponent {
-public:
-    void Update(float deltaTime) override;
-};
+namespace DGEngine {
+    class Sprite : public BaseComponent {
+    public:
+        void Update(float deltaTime) override;
+    };
+}
+
+
 
 #endif //TESTDG_SPRITE_H

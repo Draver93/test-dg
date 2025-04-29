@@ -5,10 +5,12 @@
 #ifndef TESTDG_LIGHT_H
 #define TESTDG_LIGHT_H
 
+namespace DGEngine {
+    class Light {
 
-class Light {
+    };
+}
 
-};
 
 
 #endif //TESTDG_LIGHT_H

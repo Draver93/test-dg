@@ -7,10 +7,14 @@
 
 #include "BaseComponent.h"
 
-class EventListener : public BaseComponent {
-public:
-    void Update(float deltaTime) override;
-};
+namespace DGEngine {
+    class EventListener : public BaseComponent {
+    public:
+        void Update(float deltaTime) override;
+    };
+}
+
+
 
 
 #endif //TESTDG_EVENTLISTENER_H

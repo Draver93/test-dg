@@ -7,14 +7,30 @@
 
 #include "Resource.h"
 
-class ResourceDirector;
+namespace DGEngine {
+    class ResourceDirector;
+    class Material;
 
-class Shader : public Resource {
-private:
-    friend ResourceDirector;
+    class Shader : public Resource {
+    private:
+        friend ResourceDirector;
+        friend Material;
 
-    Shader(){};
-};
+        Shader(GLenum shaderType, const std::string &shaderSource);
+    public:
+        bool Reload(const std::string &shaderSource);
+    private:
+        bool Load(const std::string &shaderSource);
+
+        GLenum m_shaderType;
+        GLuint m_pShader;
+    };
+
+
+
+
+
+}
 
 
 #endif //TESTDG_SHADER_H

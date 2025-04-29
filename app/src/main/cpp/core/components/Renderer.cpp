@@ -4,6 +4,9 @@
 
 #include "Renderer.h"
 
-void Renderer::Update(float deltaTime) {
+namespace DGEngine {
+    void Renderer::Update(float deltaTime) {
 
-};
+    };
+}
+

@@ -3,3 +3,8 @@
 //
 
 #include "Resource.h"
+
+
+namespace DGEngine {
+
+}

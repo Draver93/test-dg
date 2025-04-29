@@ -16,7 +16,7 @@ TextureAsset::loadAsset(AAssetManager *assetManager, const std::string &assetPat
     auto result = AImageDecoder_createFromAAsset(pAndroidRobotPng, &pAndroidDecoder);
     assert(result == ANDROID_IMAGE_DECODER_SUCCESS);
 
-    // make sure we get 8 bits per channel out. RGBA order.
+    // make sure we Get 8 bits per channel out. RGBA order.
     AImageDecoder_setAndroidBitmapFormat(pAndroidDecoder, ANDROID_BITMAP_FORMAT_RGBA_8888);
 
     // Get the image header, to help set everything up
@@ -42,7 +42,7 @@ TextureAsset::loadAsset(AAssetManager *assetManager, const std::string &assetPat
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    // Clamp to the edge, you'll get odd results alpha blending if you don't
+    // Clamp to the edge, you'll Get odd results alpha blending if you don't
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -53,7 +53,7 @@ TextureAsset::loadAsset(AAssetManager *assetManager, const std::string &assetPat
     glTexImage2D(
             GL_TEXTURE_2D, // target
             0, // mip level
-            GL_RGBA, // internal format, often advisable to get BGR
+            GL_RGBA, // internal format, often advisable to Get BGR
             width, // width of the texture
             height, // height of the texture
             0, // border (always 0)

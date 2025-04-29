@@ -7,14 +7,18 @@
 
 #include "Resource.h"
 
-class ResourceDirector;
+namespace DGEngine {
+    class ResourceDirector;
 
-class Texture : public Resource {
-private:
-    friend ResourceDirector;
+    class Texture : public Resource {
+    private:
+        friend ResourceDirector;
 
-    Texture(){};
-};
+        Texture(){};
+    };
+
+}
+
 
 
 #endif //TESTDG_TEXTURE_H

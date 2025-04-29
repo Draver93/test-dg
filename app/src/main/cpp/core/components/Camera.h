@@ -5,10 +5,10 @@
 #ifndef TESTDG_CAMERA_H
 #define TESTDG_CAMERA_H
 
+namespace DGEngine {
+    class Camera {
 
-class Camera {
-
-};
-
+    };
+}
 
 #endif //TESTDG_CAMERA_H

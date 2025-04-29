@@ -3,3 +3,7 @@
 //
 
 #include "Light.h"
+
+namespace DGEngine {
+
+}

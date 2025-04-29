@@ -5,17 +5,29 @@
 #ifndef TESTDG_MODEL_H
 #define TESTDG_MODEL_H
 
-#include <vector>
-
 #include "BaseComponent.h"
 
-class Model : public BaseComponent {
-public:
-    void Update(float deltaTime) override;
+#include <GLES3/gl3.h>
+#include <vector>
 
-private:
-    std::vector<std::shared_ptr<Mesh>> m_Meshes;
-};
+namespace DGEngine {
+    class Model : public BaseComponent {
+    public:
+        void Update(float deltaTime) override;
+
+    public:
+        explicit Model();
+        void SetMeshes(const std::vector<std::shared_ptr<Mesh>> &meshes);
+        const std::vector<std::shared_ptr<Mesh>>& GetMeshes() const { return m_Meshes; }
+
+        GLuint GetVertexArrayObject() { return m_VertexArrayObject; }
+
+    private:
+        std::vector<std::shared_ptr<Mesh>> m_Meshes;
+        GLuint m_VertexArrayObject;
+    };
+}
+
 
 
 #endif //TESTDG_MODEL_H

@@ -4,39 +4,24 @@
 #include <EGL/egl.h>
 #include <memory>
 
-#include "Model.h"
-#include "Program.h"
 #include "core/GameScene.h"
 #include "core/GameDirector.h"
 #include "core/components/Renderer.h"
 #include "core/components/Transform.h"
+#include "core/utilities/GLTFLoader.h"
 
-#include <tinygltf/tiny_gltf.h>
+using Clock = std::chrono::high_resolution_clock;
+using TimePoint = std::chrono::time_point<Clock>;
 
 struct android_app;
 
 class GameContext {
 private:
-    std::shared_ptr<GameScene> m_activeScene;
+    std::shared_ptr<DGEngine::GameScene> m_ActiveScene;
 
 public:
-    /*!
-     * @param pApp the android_app this GameContext belongs to, needed to configure GL
-     */
-    inline GameContext(android_app *pApp) :
-            app_(pApp),
-            display_(EGL_NO_DISPLAY),
-            surface_(EGL_NO_SURFACE),
-            context_(EGL_NO_CONTEXT),
-            width_(0),
-            height_(0),
-            shaderNeedsNewProjectionMatrix_(true) {
-        initRenderer();
 
-        m_activeScene = std::make_shared<GameScene>();
-        m_activeScene->AddGameObject(std::make_shared<GameObject>());
-    }
-
+    explicit GameContext(android_app *pApp);
     virtual ~GameContext();
 
     /*!
@@ -68,8 +53,6 @@ private:
      */
     void createModels();
 
-    void _drawModel(const Model &model);
-
     android_app *app_;
     EGLDisplay display_;
     EGLSurface surface_;
@@ -79,19 +62,7 @@ private:
 
     bool shaderNeedsNewProjectionMatrix_;
 
-    std::unique_ptr<Program> m_program;
-    std::vector<Model> models_;
-    float m_cam_rot = 0;
-    tinygltf::Model m_model;
-    std::pair<GLuint, std::map<int, GLuint>> m_vaoAndEbos;
-
-    void drawMesh(const std::map<int, GLuint>& vbos, tinygltf::Model &model, tinygltf::Mesh &mesh);
-    void drawModelNodes(const std::pair<GLuint, std::map<int, GLuint>>& vaoAndEbos, tinygltf::Model &model, tinygltf::Node &node);
-    void drawModel(const std::pair<GLuint, std::map<int, GLuint>>& vaoAndEbos, tinygltf::Model &model);
-
-    void bindMesh(std::map<int, GLuint>& vbos, tinygltf::Model &model, tinygltf::Mesh &mesh);
-    void bindModelNodes(std::map<int, GLuint>& vbos, tinygltf::Model &model, tinygltf::Node &node);
-    std::pair<GLuint, std::map<int, GLuint>> bindModel(tinygltf::Model &model);
+    TimePoint m_PreviousTime;
 };
 
 #endif //ANDROIDGLINVESTIGATIONS_RENDERER_H

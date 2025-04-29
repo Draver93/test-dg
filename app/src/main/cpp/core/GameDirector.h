@@ -7,10 +7,14 @@
 
 #include "GameObject.h"
 
-class GameDirector {
-public:
-    static std::shared_ptr<GameObject> CreateModel();
-};
+namespace DGEngine {
+    class GameDirector {
+    public:
+        static std::shared_ptr<GameObject> CreateModel(const char* filename);
+    };
+
+}
+
 
 
 #endif //TESTDG_GAMEDIRECTOR_H

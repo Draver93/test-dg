@@ -6,10 +6,16 @@
 #define TESTDG_RESOURCE_H
 
 #include <vector>
+#include <GLES3/gl3.h>
 
-class Resource {
+namespace DGEngine {
+    class Resource {
+    public:
+        virtual ~Resource() = default;
+    };
 
-};
+}
+
 
 
 #endif //TESTDG_RESOURCE_H

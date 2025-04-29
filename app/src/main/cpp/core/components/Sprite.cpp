@@ -4,6 +4,9 @@
 
 #include "Sprite.h"
 
-void Sprite::Update(float deltaTime) {
+namespace DGEngine {
+    void Sprite::Update(float deltaTime) {
 
-};
+    };
+}
+

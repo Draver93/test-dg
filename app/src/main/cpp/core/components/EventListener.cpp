@@ -4,6 +4,10 @@
 
 #include "EventListener.h"
 
-void EventListener::Update(float deltaTime) {
+namespace DGEngine {
+    void EventListener::Update(float deltaTime) {
 
-};
+    };
+}
+
+

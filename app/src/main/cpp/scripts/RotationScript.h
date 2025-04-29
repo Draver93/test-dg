@@ -8,7 +8,7 @@
 #include "../core/components/BaseComponent.h"
 
 
-class RotationScript : public BaseComponent {
+class RotationScript : public DGEngine::BaseComponent {
 public:
     void Update(float deltaTime) override;
 };

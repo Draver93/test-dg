@@ -5,9 +5,12 @@
 #include "BaseComponent.h"
 #include "../GameObject.h"
 
-template<typename T>
-T* BaseComponent::GetComponent() {
-    if (owner)
-        return owner->GetComponent<T>();
-    return nullptr;
+namespace DGEngine {
+    template<typename T>
+    T* BaseComponent::GetComponent() {
+        if (owner)
+            return owner->GetComponent<T>();
+        return nullptr;
+    }
 }
+
