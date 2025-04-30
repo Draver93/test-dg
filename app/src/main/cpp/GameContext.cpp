@@ -10,6 +10,8 @@
 #include "Utility.h"
 #include "TextureAsset.h"
 #include "scripts/RotationScript.h"
+#include "core/system/EventDispatcher.h"
+#include "core/system/ResourceDirector.h"
 
 //! executes glGetString and outputs the result to logcat
 #define PRINT_GL_STRING(s) {aout << #s": "<< glGetString(s) << std::endl;}
@@ -63,6 +65,7 @@ GameContext::~GameContext() {
         eglTerminate(m_Display);
         m_Display = EGL_NO_DISPLAY;
     }
+    DGEngine::ResourceDirector::Clear();
 }
 
 void GameContext::update() {
@@ -76,7 +79,7 @@ void GameContext::update() {
     if(m_ActiveScene) {
         m_ActiveScene->Update(deltaTime.count());
     }
-
+    handleInput();
     // Present the rendered image. This is an implicit glFlush.
     auto swapResult = eglSwapBuffers(m_Display, m_Surface);
     assert(swapResult == EGL_TRUE);
@@ -179,89 +182,68 @@ void GameContext::createModels() {
 }
 
 void GameContext::handleInput() {
-    // handle all queued inputs
     auto *inputBuffer = android_app_swap_input_buffers(m_App);
-    if (!inputBuffer) {
-        // no inputs yet.
-        return;
-    }
+    if (!inputBuffer) return;
 
-    // handle motion events (motionEventsCounts can be 0).
-    for (auto i = 0; i < inputBuffer->motionEventsCount; i++) {
-        auto &motionEvent = inputBuffer->motionEvents[i];
+    auto& eventDispatcher = DGEngine::EventDispatcher::Get();
+
+    // Handle motion (touch) events
+    for (int i = 0; i < inputBuffer->motionEventsCount; ++i) {
+        auto& motionEvent = inputBuffer->motionEvents[i];
         auto action = motionEvent.action;
+        int pointerIndex = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
-        // Find the pointer index, mask and bitshift to turn it into a readable value.
-        auto pointerIndex = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK)
-                >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-        aout << "Pointer(s): ";
+        const auto& pointer = motionEvent.pointers[pointerIndex];
+        glm::vec2 pointer_pos = { GameActivityPointerAxes_getX(&pointer), GameActivityPointerAxes_getY(&pointer) };
 
-        // Get the x and y position of this event if it is not ACTION_MOVE.
-        auto &pointer = motionEvent.pointers[pointerIndex];
-        auto x = GameActivityPointerAxes_getX(&pointer);
-        auto y = GameActivityPointerAxes_getY(&pointer);
+        using TouchType = DGEngine::TouchEvent::Type;
+        TouchType type;
 
-        // determine the action type and process the event accordingly.
         switch (action & AMOTION_EVENT_ACTION_MASK) {
             case AMOTION_EVENT_ACTION_DOWN:
             case AMOTION_EVENT_ACTION_POINTER_DOWN:
-                aout << "(" << pointer.id << ", " << x << ", " << y << ") "
-                     << "Pointer Down";
+                type = TouchType::Down;
                 break;
-
-            case AMOTION_EVENT_ACTION_CANCEL:
-                // treat the CANCEL as an UP event: doing nothing in the app, except
-                // removing the pointer from the cache if pointers are locally saved.
-                // code pass through on purpose.
             case AMOTION_EVENT_ACTION_UP:
             case AMOTION_EVENT_ACTION_POINTER_UP:
-                aout << "(" << pointer.id << ", " << x << ", " << y << ") "
-                     << "Pointer Up";
+            case AMOTION_EVENT_ACTION_CANCEL:
+                type = TouchType::Up;
                 break;
-
             case AMOTION_EVENT_ACTION_MOVE:
-                // There is no pointer index for ACTION_MOVE, only a snapshot of
-                // all active pointers; app needs to cache previous active pointers
-                // to figure out which ones are actually moved.
-                for (auto index = 0; index < motionEvent.pointerCount; index++) {
-                    pointer = motionEvent.pointers[index];
-                    x = GameActivityPointerAxes_getX(&pointer);
-                    y = GameActivityPointerAxes_getY(&pointer);
-                    aout << "(" << pointer.id << ", " << x << ", " << y << ")";
-
-                    if (index != (motionEvent.pointerCount - 1)) aout << ",";
-                    aout << " ";
+                // For move, push events for all active pointers
+                for (int j = 0; j < motionEvent.pointerCount; ++j) {
+                    const auto& p = motionEvent.pointers[j];
+                    glm::vec2 pos = { GameActivityPointerAxes_getX(&p), GameActivityPointerAxes_getY(&p) };
+                    auto evt = std::make_unique<DGEngine::TouchEvent>(DGEngine::TouchEvent{p.id, pos, TouchType::Move, m_App});
+                    eventDispatcher.QueueEvent(std::move(evt));
                 }
-                aout << "Pointer Move";
-                break;
+                continue;
             default:
-                aout << "Unknown MotionEvent Action: " << action;
+                continue;
         }
-        aout << std::endl;
+
+        auto evt = std::make_unique<DGEngine::TouchEvent>(DGEngine::TouchEvent{pointer.id, pointer_pos, type, m_App});
+        eventDispatcher.QueueEvent(std::move(evt));
     }
-    // clear the motion input count in this buffer for main thread to re-Get.
+
     android_app_clear_motion_events(inputBuffer);
 
-    // handle input key events.
-    for (auto i = 0; i < inputBuffer->keyEventsCount; i++) {
-        auto &keyEvent = inputBuffer->keyEvents[i];
-        aout << "Key: " << keyEvent.keyCode <<" ";
+    // Handle key events
+    for (int i = 0; i < inputBuffer->keyEventsCount; ++i) {
+        auto& keyEvent = inputBuffer->keyEvents[i];
+        using KeyType = DGEngine::KeyEvent::Type;
+
+        KeyType type;
         switch (keyEvent.action) {
-            case AKEY_EVENT_ACTION_DOWN:
-                aout << "Key Down";
-                break;
-            case AKEY_EVENT_ACTION_UP:
-                aout << "Key Up";
-                break;
-            case AKEY_EVENT_ACTION_MULTIPLE:
-                // Deprecated since Android API level 29.
-                aout << "Multiple Key Actions";
-                break;
-            default:
-                aout << "Unknown KeyEvent Action: " << keyEvent.action;
+            case AKEY_EVENT_ACTION_DOWN: type = KeyType::Down; break;
+            case AKEY_EVENT_ACTION_UP:   type = KeyType::Up;   break;
+            default: continue;
         }
-        aout << std::endl;
+
+        auto evt = std::make_unique<DGEngine::KeyEvent>(DGEngine::KeyEvent{keyEvent.keyCode, type, m_App});
+        eventDispatcher.QueueEvent(std::move(evt));
     }
-    // clear the key input count too.
+
     android_app_clear_key_events(inputBuffer);
+    eventDispatcher.PumpEvents();
 }

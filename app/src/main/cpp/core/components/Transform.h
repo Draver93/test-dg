@@ -17,6 +17,7 @@ namespace DGEngine {
         glm::vec3 scale{1.0f};
 
         glm::mat4 GetMatrix() const;
+        void Rotate(const glm::vec3& eulerRadians);
         void RotateEuler(const glm::vec3& eulerRadians);
         void SetRotationEuler(const glm::vec3& eulerRadians);
 

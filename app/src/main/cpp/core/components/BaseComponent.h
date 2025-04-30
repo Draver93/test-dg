@@ -10,7 +10,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../resources/ResourceDirector.h"
+#include "../system/ResourceDirector.h"
 
 namespace DGEngine {
     class GameObject;

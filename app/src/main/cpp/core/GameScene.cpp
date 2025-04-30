@@ -5,7 +5,7 @@
 #include "components/Camera.h"
 
 
-#include "resources/ResourceDirector.h"
+#include "system/ResourceDirector.h"
 #include "../Utility.h"
 #include "GameScene.h"
 

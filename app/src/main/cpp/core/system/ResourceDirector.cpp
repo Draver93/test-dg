@@ -43,5 +43,9 @@ namespace DGEngine {
         return shader;
     }
 
+    void ResourceDirector::Clear() {
+        s_ResourceCache.clear();
+    }
+
 }
 

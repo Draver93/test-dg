@@ -23,6 +23,7 @@ void handle_cmd(android_app *pApp, int32_t cmd) {
             // if you change the class here as a reinterpret_cast is dangerous this in the
             // android_main function and the APP_CMD_TERM_WINDOW handler case.
             pApp->userData = new GameContext(pApp);
+
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being destroyed. Use this to clean up your userData to avoid leaking
@@ -34,6 +35,13 @@ void handle_cmd(android_app *pApp, int32_t cmd) {
                 auto *pCtx = reinterpret_cast<GameContext *>(pApp->userData);
                 pApp->userData = nullptr;
                 delete pCtx;
+            }
+            break;
+        case APP_CMD_DESTROY:
+
+            if (pApp->userData) {
+                delete pApp->userData;
+                pApp->userData = nullptr;
             }
             break;
         default:

@@ -7,7 +7,7 @@
 #include "../components/Transform.h"
 #include "../GameObject.h"
 
-#include "ResourceDirector.h"
+#include "../system/ResourceDirector.h"
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 namespace DGEngine {

@@ -21,6 +21,11 @@ namespace DGEngine {
         return glm::eulerAngles(rotation);
     }
 
+    void Transform::Rotate(const glm::vec3& eulerRadians) {
+        glm::quat deltaRotation = glm::quat(eulerRadians);
+        rotation = glm::normalize(deltaRotation * rotation);
+    }
+
     void Transform::SetRotationEuler(const glm::vec3& eulerRadians) {
         rotation = glm::quat(eulerRadians);
     }

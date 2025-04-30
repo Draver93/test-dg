@@ -5,10 +5,10 @@
 #ifndef TESTDG_RESOURCEDIRECTOR_H
 #define TESTDG_RESOURCEDIRECTOR_H
 
-#include "Mesh.h"
-#include "Material.h"
-#include "Shader.h"
-#include "Texture.h"
+#include "../resources/Mesh.h"
+#include "../resources/Material.h"
+#include "../resources/Shader.h"
+#include "../resources/Texture.h"
 
 #include <sstream>
 #include <map>
@@ -27,6 +27,7 @@ namespace DGEngine {
         static std::shared_ptr<Material> DefaultMaterial();
         static std::shared_ptr<Shader> CreateShader(GLenum shaderType, const std::string &shaderSource);
 
+        static void Clear();
     private:
         static std::unordered_map<std::string, std::shared_ptr<Resource>> s_ResourceCache;
     };

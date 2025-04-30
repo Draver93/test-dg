@@ -3,7 +3,7 @@
 //
 
 #include "Material.h"
-#include "ResourceDirector.h"
+#include "../system/ResourceDirector.h"
 
 static const char *default_vertex = R"vertex(#version 300 es
 layout(location = 0) in vec3 in_vertex;
