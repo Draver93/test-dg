@@ -176,7 +176,7 @@ void GameContext::createScene() {
 
         std::shared_ptr<DGEngine::GameObject> camera = DGEngine::GameDirector::CreateCamera( m_Display, m_Surface );
         DGEngine::Transform* transform = camera->GetComponent<DGEngine::Transform>();
-        transform->position[2] = -10;
+        transform->position[2] = -7;
         m_ActiveScene->AddGameObject(camera);
 
         std::shared_ptr<DGEngine::GameObject> l1 = DGEngine::GameDirector::CreateLight( glm::vec3(1.0f, 0.0f, 1.0f), 1.0f );

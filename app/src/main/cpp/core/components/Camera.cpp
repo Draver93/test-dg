@@ -21,12 +21,6 @@ namespace DGEngine {
                 m_ProjectionMatrix = glm::perspective(glm::radians(fov), aspect, nearPlane, farPlane);
                 m_NeedMatrixRecalculate = false;
             }
-
-            /*m_cam_rot += 1.0f;
-            if(m_cam_rot > 20) m_cam_rot = -20;
-            transform->position[1] = m_cam_rot;*/
-            transform->position[2] = -5;
-
             m_ViewMatrix = glm::lookAt(transform->GetPosition(), transform->GetForward(), transform->GetUp());
         }
 
