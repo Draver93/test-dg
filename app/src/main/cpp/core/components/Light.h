@@ -11,6 +11,13 @@ namespace DGEngine {
     class Light : public BaseComponent {
     public:
         void Update(float deltaTime) override;
+        Light(glm::vec3 c, float intens) : color(c), intensity(intens) {};
+
+        glm::vec3 GetPosition();
+
+    public:
+        glm::vec3 color;
+        float intensity;
     };
 }
 

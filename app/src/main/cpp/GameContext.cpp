@@ -178,6 +178,21 @@ void GameContext::createModels() {
         DGEngine::Transform* transform = camera->GetComponent<DGEngine::Transform>();
         transform->position[2] = -10;
         m_ActiveScene->AddGameObject(camera);
+
+        std::shared_ptr<DGEngine::GameObject> l1 = DGEngine::GameDirector::CreateLight( glm::vec3(1.0f, 0.0f, 1.0f), 1.0f );
+        transform = l1->GetComponent<DGEngine::Transform>();
+        transform->position = glm::vec3{10, 10, 0};
+        m_ActiveScene->AddGameObject(l1);
+
+        std::shared_ptr<DGEngine::GameObject> l2 = DGEngine::GameDirector::CreateLight( glm::vec3(0.0f, 1.0f, 1.0f), 1.0f );
+        transform = l2->GetComponent<DGEngine::Transform>();
+        transform->position = glm::vec3{-10, 10, 0};
+        m_ActiveScene->AddGameObject(l2);
+
+        std::shared_ptr<DGEngine::GameObject> l3 = DGEngine::GameDirector::CreateLight( glm::vec3(1.0f, 1.0f, 0.0f), 1.0f );
+        transform = l3->GetComponent<DGEngine::Transform>();
+        transform->position = glm::vec3{0, 0, -10};
+        m_ActiveScene->AddGameObject(l3);
     }
 }
 

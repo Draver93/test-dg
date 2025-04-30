@@ -3,6 +3,7 @@
 //
 #include "components/Model.h"
 #include "components/Camera.h"
+#include "components/Light.h"
 
 
 #include "system/ResourceDirector.h"
@@ -27,9 +28,8 @@ namespace DGEngine {
 
     void GameScene::Update(float deltaTime) {
 
-        std::vector<std::shared_ptr<Camera>> activeCamera;
         std::unordered_map<std::shared_ptr<Material>, std::vector<std::shared_ptr<Mesh>>> drawBatches;
-
+        std::vector<DGEngine::Light*> sceneLights;
         DGEngine::Camera *active_camera = nullptr;
         for(auto &go : m_Objects) {
             go->Update(deltaTime);
@@ -46,11 +46,24 @@ namespace DGEngine {
                 for(const std::shared_ptr<Mesh> &mesh : meshes)
                     drawBatches[mesh->GetMaterial()].push_back(mesh);
             }
+
+            DGEngine::Light *light = go->GetComponent<DGEngine::Light>();
+            if(light) sceneLights.push_back(light);
         }
+
+
 
         GLuint lastBoundVAO = 0;
         for(auto [material, meshes] : drawBatches) {
             glUseProgram(material->Get());
+
+            for(int i = 0; i < sceneLights.size(); i++) {
+                // Simple light for the example
+                material->SetUniform("uLights[" + std::to_string(i) + "].position",  sceneLights[i]->GetPosition());
+                material->SetUniform("uLights[" + std::to_string(i) + "].color",  sceneLights[i]->color);
+                material->SetUniform("uLights[" + std::to_string(i) + "].intensity", sceneLights[i]->intensity);
+            }
+            material->SetUniform("uLightCount", (int)sceneLights.size());
 
             if(active_camera) {
                 material->SetUniform("uProjection", glm::value_ptr(active_camera->GetProjectionMatrix()));

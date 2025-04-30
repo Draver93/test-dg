@@ -13,6 +13,7 @@ namespace DGEngine {
     public:
         static std::shared_ptr<GameObject> CreateModel(const char* filename);
         static std::shared_ptr<GameObject> CreateCamera(EGLDisplay m_Display, EGLSurface m_Surface);
+        static std::shared_ptr<GameObject> CreateLight(glm::vec3 color, float intensity);
     };
 
 }

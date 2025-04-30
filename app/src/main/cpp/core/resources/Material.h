@@ -8,6 +8,7 @@
 #include "Resource.h"
 #include "Shader.h"
 #include <GLES3/gl3.h>
+#include <glm/glm.hpp>
 
 #include <map>
 
@@ -30,9 +31,12 @@ namespace DGEngine {
 
         GLuint Get() const;
         void AttachShader(const std::shared_ptr <Shader> shader);
-        void SetUniform(const std::string &name, float value);
-        void SetUniform(const std::string &name, int value);
-        void SetUniform(const std::string &name, const float *matrix);
+        void SetUniform(const std::string& name, float value);
+        void SetUniform(const std::string& name, int value);
+        void SetUniform(const std::string& name, const float* matrix);
+        void SetUniform(const std::string& name, const glm::vec3& value);
+        void SetUniform(const std::string& name, const glm::vec4& value);
+
         GLint GetUniformLocation(const std::string &name);
         GLint GetAttributeLocation(const std::string &name);
 

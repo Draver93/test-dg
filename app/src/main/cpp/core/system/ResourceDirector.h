@@ -6,8 +6,8 @@
 #define TESTDG_RESOURCEDIRECTOR_H
 
 #include "../resources/Mesh.h"
-#include "../resources/Material.h"
 #include "../resources/Shader.h"
+#include "../resources/Material.h"
 #include "../resources/Texture.h"
 
 #include <sstream>

@@ -4,6 +4,7 @@
 
 #include "GameDirector.h"
 #include "components/Model.h"
+#include "components/Light.h"
 #include "components/Camera.h"
 #include "components/Transform.h"
 
@@ -146,11 +147,18 @@ namespace DGEngine {
         return go;
     }
 
-    //////////////
 
     std::shared_ptr<GameObject> GameDirector::CreateCamera(EGLDisplay m_Display, EGLSurface m_Surface) {
         auto go = std::make_shared<GameObject>();
         go->AddComponent<Camera>(m_Display, m_Surface);
+        go->AddComponent<Transform>();
+        return go;
+    }
+
+
+    std::shared_ptr<GameObject> GameDirector::CreateLight(glm::vec3 color, float intensity) {
+        auto go = std::make_shared<GameObject>();
+        go->AddComponent<Light>(color, intensity);
         go->AddComponent<Transform>();
         return go;
     }
