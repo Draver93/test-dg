@@ -1,5 +1,5 @@
 //
-// Created by drave on 4/28/2025.
+// Created by Finoshkin Aleksei on 4/28/2025.
 //
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION

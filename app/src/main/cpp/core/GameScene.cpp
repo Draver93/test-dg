@@ -1,10 +1,10 @@
 //
-// Created by drave on 4/27/2025.
+// Created by Finoshkin Aleksei on 4/27/2025.
 //
+
 #include "components/Model.h"
 #include "components/Camera.h"
 #include "components/Light.h"
-
 
 #include "system/ResourceDirector.h"
 #include "../Utility.h"

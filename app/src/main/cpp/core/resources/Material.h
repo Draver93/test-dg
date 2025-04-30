@@ -1,5 +1,5 @@
 //
-// Created by drave on 4/29/2025.
+// Created by Finoshkin Aleksei on 4/29/2025.
 //
 
 #ifndef TESTDG_MATERIAL_H

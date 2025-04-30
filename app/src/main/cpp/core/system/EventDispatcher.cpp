@@ -1,5 +1,5 @@
 //
-// Created by drave on 4/30/2025.
+// Created by Finoshkin Aleksei on 4/30/2025.
 //
 
 #include "EventDispatcher.h"

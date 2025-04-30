@@ -1,5 +1,5 @@
 //
-// Created by drave on 4/27/2025.
+// Created by Finoshkin Aleksei on 4/27/2025.
 //
 
 #include "GameObject.h"

@@ -17,33 +17,25 @@ extern "C" {
  */
 void handle_cmd(android_app *pApp, int32_t cmd) {
     switch (cmd) {
-        case APP_CMD_INIT_WINDOW:
-            // A new window is created, associate a renderer with it. You may replace this with a
-            // "game" class if that suits your needs. Remember to change all instances of userData
-            // if you change the class here as a reinterpret_cast is dangerous this in the
-            // android_main function and the APP_CMD_TERM_WINDOW handler case.
+        case APP_CMD_INIT_WINDOW: {
             pApp->userData = new GameContext(pApp);
-
             break;
-        case APP_CMD_TERM_WINDOW:
-            // The window is being destroyed. Use this to clean up your userData to avoid leaking
-            // resources.
-            //
-            // We have to check if userData is assigned just in case this comes in really quickly
+        }
+        case APP_CMD_TERM_WINDOW: {
             if (pApp->userData) {
-                //
                 auto *pCtx = reinterpret_cast<GameContext *>(pApp->userData);
                 pApp->userData = nullptr;
                 delete pCtx;
             }
             break;
-        case APP_CMD_DESTROY:
-
+        }
+        case APP_CMD_DESTROY: {
             if (pApp->userData) {
                 delete pApp->userData;
                 pApp->userData = nullptr;
             }
             break;
+        }
         default:
             break;
     }
