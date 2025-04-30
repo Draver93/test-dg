@@ -46,7 +46,6 @@ GameContext::GameContext(android_app *pApp) :
         m_PreviousTime(Clock::now()) {
         DGEngine::GLTFLoader::Init(pApp->activity->assetManager);
 
-        m_ActiveScene = std::make_shared<DGEngine::GameScene>();
         initRenderer();
     }
 
@@ -164,11 +163,12 @@ void GameContext::initRenderer() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    // Get some demo models into memory
-    createModels();
+    createScene();
 }
 
-void GameContext::createModels() {
+void GameContext::createScene() {
+    m_ActiveScene = std::make_shared<DGEngine::GameScene>();
+
     if(m_ActiveScene) {
         std::shared_ptr<DGEngine::GameObject> model = DGEngine::GameDirector::CreateModel("Cube/Cube.gltf");
         model->AddComponent<RotationScript>();

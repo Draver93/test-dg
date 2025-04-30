@@ -1,4 +1,7 @@
 # Test Project
+<p align="center">
+<img src="./example/screenshot.png" alt="Cube" width="100%">
+</p>
 
 This is a lightweight real-time 3D engine built for Android using C++, OpenGL ES 3.0, and CMake, designed as a test project for showcasing engine architecture and real-time rendering capabilities.
 

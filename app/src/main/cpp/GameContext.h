@@ -40,11 +40,8 @@ private:
      */
     void initRenderer();
 
-    /*!
-     * Creates the models for this sample. You'd likely load a scene configuration from a file or
-     * get some other setup logic in your full game.
-     */
-    void createModels();
+
+    void createScene();
 
     android_app *m_App;
     EGLDisplay m_Display;
