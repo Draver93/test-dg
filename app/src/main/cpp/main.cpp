@@ -29,13 +29,6 @@ void handle_cmd(android_app *pApp, int32_t cmd) {
             }
             break;
         }
-        case APP_CMD_DESTROY: {
-            if (pApp->userData) {
-                delete pApp->userData;
-                pApp->userData = nullptr;
-            }
-            break;
-        }
         default:
             break;
     }
