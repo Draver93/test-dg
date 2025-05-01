@@ -51,8 +51,6 @@ namespace DGEngine {
                          m_IndexData.data(),
                          GL_STATIC_DRAW);
         }
-
-        glBindVertexArray(0);
     }
 
     GLuint Mesh::GetVertexArrayObject() {
