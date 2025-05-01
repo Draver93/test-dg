@@ -11,21 +11,53 @@
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 namespace DGEngine {
-    Mesh::Mesh(int target, const uint8_t *buffer, long size, size_t offset){
-        m_Material = ResourceDirector::DefaultMaterial();
-    };
+    Mesh::Mesh(   const std::vector<uint8_t> &indexData,
+                  const std::vector<Mesh::Attribute> &attributes,
+                  GLenum drawMode,
+                  GLenum indexType,
+                  GLsizei indexCount,
+                  size_t indexOffset ) :
+            m_Material(ResourceDirector::DefaultMaterial()),
+            m_IndexData(indexData),
+            m_Attributes(attributes),
+            m_DrawMode(drawMode),
+            m_IndexType(indexType),
+            m_IndexCount(indexCount),
+            m_IndexOffset(indexOffset){}
 
-    void Mesh::SetAttributes(const std::vector<Attribute>& attributes) {
-        m_Attributes = attributes;
+    void Mesh::Bind() {
+        // Setup vertex attributes
+        for (const auto& attr : m_Attributes) {
+            GLuint vertexBufferObject;
+            glGenBuffers(1, &vertexBufferObject);
+            glBindBuffer(attr.target, vertexBufferObject);
+            glBufferData(attr.target, attr.data.size(), attr.data.data(), GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(attr.vao);
+            glVertexAttribPointer(attr.vao,
+                                  attr.size,
+                                  attr.type,
+                                  attr.normalized ? GL_TRUE : GL_FALSE,
+                                  attr.byteStride,
+                                  (void*)(intptr_t)(attr.byteOffset));
+        }
+        // Upload IBO if exists
+        if (!m_IndexData.empty()) {
+            GLuint indexBufferObject;
+            glGenBuffers(1, &indexBufferObject);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                         m_IndexData.size(),
+                         m_IndexData.data(),
+                         GL_STATIC_DRAW);
+        }
+
+        glBindVertexArray(0);
     }
 
     GLuint Mesh::GetVertexArrayObject() {
-        return m_Parent ? m_Parent->GetVertexArrayObject() : 0;
-    }
-    glm::mat4 Mesh::GetTransformMatrix() {
-        if(m_Parent)
-            return m_Parent->GetTransformMatrix();
-        return glm::mat4();
+        if(m_Parent) return m_Parent->GetVertexArrayObject();
+        return 0;
     }
 
     void Mesh::Draw() {

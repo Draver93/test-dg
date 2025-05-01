@@ -23,7 +23,14 @@ namespace DGEngine {
 
     class ResourceDirector {
     public:
-        static std::shared_ptr<Mesh> CreateMesh(int target, const uint8_t *buffer, long size, size_t offset);
+        static std::shared_ptr<Mesh> CreateMesh(
+                const std::vector<uint8_t> &indexData,
+                const std::vector<Mesh::Attribute> &attributes,
+                GLenum drawMode,
+                GLenum indexType,
+                GLsizei indexCount,
+                size_t indexOffset );
+
         static std::shared_ptr<Material> DefaultMaterial();
         static std::shared_ptr<Shader> CreateShader(GLenum shaderType, const std::string &shaderSource);
 

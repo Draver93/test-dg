@@ -170,13 +170,18 @@ void GameContext::createScene() {
     m_ActiveScene = std::make_shared<DGEngine::GameScene>();
 
     if(m_ActiveScene) {
-        std::shared_ptr<DGEngine::GameObject> model = DGEngine::GameDirector::CreateModel("Cube/Cube.gltf");
-        model->AddComponent<RotationScript>();
-        m_ActiveScene->AddGameObject(model);
+        std::shared_ptr<DGEngine::GameObject> first_cube = DGEngine::GameDirector::CreateModel("Cube/Cube.gltf");
+        first_cube->AddComponent<RotationScript>();
+        m_ActiveScene->AddGameObject(first_cube);
+
+        std::shared_ptr<DGEngine::GameObject> second_cube = DGEngine::GameDirector::CreateModel("Cube/Cube.gltf");
+        DGEngine::Transform* transform = second_cube->GetComponent<DGEngine::Transform>();
+        transform->position = glm::vec3{2, 5, 10};
+        m_ActiveScene->AddGameObject(second_cube);
 
         std::shared_ptr<DGEngine::GameObject> camera = DGEngine::GameDirector::CreateCamera( m_Display, m_Surface );
-        DGEngine::Transform* transform = camera->GetComponent<DGEngine::Transform>();
-        transform->position[2] = -7;
+        transform = camera->GetComponent<DGEngine::Transform>();
+        transform->position[2] = -10;
         m_ActiveScene->AddGameObject(camera);
 
         std::shared_ptr<DGEngine::GameObject> l1 = DGEngine::GameDirector::CreateLight( glm::vec3(1.0f, 0.0f, 1.0f), 1.0f );

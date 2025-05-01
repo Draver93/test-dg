@@ -28,7 +28,7 @@ namespace DGEngine {
 
     void GameScene::Update(float deltaTime) {
 
-        std::unordered_map<std::shared_ptr<Material>, std::vector<std::shared_ptr<Mesh>>> drawBatches;
+        std::unordered_map<std::shared_ptr<Material>, std::vector< std::pair< Model*, std::shared_ptr<Mesh> > >> drawBatches;
         std::vector<DGEngine::Light*> sceneLights;
         DGEngine::Camera *active_camera = nullptr;
         for(auto &go : m_Objects) {
@@ -44,14 +44,12 @@ namespace DGEngine {
             if(model) {
                 const std::vector<std::shared_ptr<Mesh>> meshes = model->GetMeshes();
                 for(const std::shared_ptr<Mesh> &mesh : meshes)
-                    drawBatches[mesh->GetMaterial()].push_back(mesh);
+                    drawBatches[mesh->GetMaterial()].push_back({model, mesh});
             }
 
             DGEngine::Light *light = go->GetComponent<DGEngine::Light>();
             if(light) sceneLights.push_back(light);
         }
-
-
 
         GLuint lastBoundVAO = 0;
         for(auto [material, meshes] : drawBatches) {
@@ -70,9 +68,10 @@ namespace DGEngine {
                 material->SetUniform("uView", glm::value_ptr(active_camera->GetViewMatrix()));
             }
 
-            for (auto& mesh : meshes) {
+            for (auto& [model, mesh] : meshes) {
                 GLuint vao = mesh->GetVertexArrayObject();
-                material->SetUniform("uModelMatrix", glm::value_ptr(mesh->GetTransformMatrix()));
+
+                material->SetUniform("uModelMatrix", glm::value_ptr(model->GetTransformMatrix()));
                 if (vao != lastBoundVAO) {
                     glBindVertexArray(vao);
                     lastBoundVAO = vao;

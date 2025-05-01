@@ -7,14 +7,26 @@
 namespace DGEngine {
     std::unordered_map<std::string, std::shared_ptr<Resource>> ResourceDirector::s_ResourceCache;
 
-    std::shared_ptr<Mesh> ResourceDirector::CreateMesh(int target, const uint8_t *buffer, long size, size_t offset) {
-        std::string key = HashArguments(buffer, size);
+    std::shared_ptr<Mesh> ResourceDirector::CreateMesh(
+            const std::vector<uint8_t> &indexData,
+            const std::vector<Mesh::Attribute> &attributes,
+            GLenum drawMode,
+            GLenum indexType,
+            GLsizei indexCount,
+            size_t indexOffset ) {
+
+        std::string key = HashArguments(indexData.data());
 
         auto it = s_ResourceCache.find(key);
         if (it != s_ResourceCache.end())
             return std::dynamic_pointer_cast<Mesh>(it->second);
 
-        std::shared_ptr<Mesh> mesh = std::shared_ptr<Mesh>(new Mesh(target, buffer, size, offset));
+        std::shared_ptr<Mesh> mesh = std::shared_ptr<Mesh>(new Mesh(indexData,
+                                                                    attributes,
+                                                                    drawMode,
+                                                                    indexType,
+                                                                    indexCount,
+                                                                    indexOffset ));
         s_ResourceCache[key] = mesh;
         return mesh;
     }
